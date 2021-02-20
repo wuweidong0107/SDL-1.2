@@ -3206,7 +3206,7 @@ fi
     fi
   fi
 
-  if test "x$sdl_pc" = xyes ; then
+  if test "x$sdl_pc" = xyes && test x${SDL_CONFIG+set} != xset; then
     no_sdl=""
     SDL_CONFIG="pkg-config sdl"
   else
