@@ -1475,6 +1475,7 @@ static int FB_TripleBufferingThread(void *d)
 
 	SDL_LockMutex(triplebuf_mutex);
 	SDL_CondSignal(triplebuf_cond);
+	Uint32 ret;
 
 	for (;;) {
 		unsigned int page;
@@ -1495,6 +1496,12 @@ static int FB_TripleBufferingThread(void *d)
 
 		if ( ioctl(console_fd, FBIOPAN_DISPLAY, &cache_vinfo) < 0 ) {
 			SDL_SetError("ioctl(FBIOPAN_DISPLAY) failed");
+			return(-1);
+		}
+
+		ret = 0;
+		if ( ioctl(console_fd, FBIO_WAITFORVSYNC, &ret) ) {
+			SDL_SetError("ioctl(FBIO_WAITFORVSYNC) failed");
 			return(-1);
 		}
 	}
@@ -1532,6 +1539,7 @@ static void FB_TripleBufferQuit(_THIS)
 
 static int FB_FlipHWSurface(_THIS, SDL_Surface *surface)
 {
+	Uint32 ret;
 	if ( switched_away ) {
 		return -2; /* no hardware access */
 	}
@@ -1567,6 +1575,11 @@ static int FB_FlipHWSurface(_THIS, SDL_Surface *surface)
 			return(-1);
 		}
 
+		ret = 0;
+		if ( ioctl(console_fd, FBIO_WAITFORVSYNC, &ret) ) {
+			SDL_SetError("ioctl(FBIO_WAITFORVSYNC) failed");
+			return(-1);
+        	}
 		flip_page = !flip_page;
 		surface->pixels = flip_address[flip_page];
 	}
